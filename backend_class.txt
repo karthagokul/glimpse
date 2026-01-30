@@ -1,0 +1,46 @@
+classDiagram
+
+    class GlimpseEvent {
+        +UUID id
+        +EventType type
+        +Timestamp occurred_at
+        +Severity severity
+        +String source
+        +String summary
+        +Map metadata
+    }
+
+    class GlimpseEventManager {
+        -Receiver~GlimpseEvent~ rx
+        -SqliteConnection db
+        +run()
+        -normalize(event)
+        -persist(event)
+    }
+
+    class Monitor {
+        <<trait>>
+        +start(tx)
+    }
+
+    class PackageMonitor {
+        +watch_dpkg_log()
+    }
+
+    class HardwareMonitor {
+        +listen_netlink()
+    }
+
+    class SystemdMonitor {
+        +watch_journal()
+    }
+
+    Monitor <|.. PackageMonitor
+    Monitor <|.. HardwareMonitor
+    Monitor <|.. SystemdMonitor
+
+    PackageMonitor --> GlimpseEvent
+    HardwareMonitor --> GlimpseEvent
+    SystemdMonitor --> GlimpseEvent
+
+    GlimpseEventManager --> GlimpseEvent
