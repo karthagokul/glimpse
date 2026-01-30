@@ -21,7 +21,6 @@ Linux systems log nearly everything, but understanding that data requires correl
 Glimpse removes that fear by making system history visible and explainable. It is designed to be a System Flight Recorder and Causal Analysis Engine that suggests safe recovery steps without acting as an automatic pilot. It respects your privacy by running entirely locally.
 
 
-
 ## Core Architecture
 
 The application follows a simple **Listen → Think → Display** model designed to remain lightweight on your resources.
@@ -29,6 +28,50 @@ The application follows a simple **Listen → Think → Display** model designed
 The **Flight Recorder** (Backend) is written in Rust. It runs as a background daemon consuming approximately 5MB of RAM. It listens to system events via `dbus`, `inotify`, and `netlink` without polling, ensuring minimal CPU usage.
 
 The **Canvas** (Frontend) is built with Python, GTK4, and Libadwaita. It serves as the viewer and intelligence layer, correlating timestamps to find causality—for example, linking a system crash to a USB device removal milliseconds prior.
+
+```mermaid
+flowchart LR
+    OS[Linux OS Signals]
+
+    subgraph Recorder["Glimpse Recorder (Rust, root)"]
+        direction TB
+        PM[PackageMonitor]
+        HM[HardwareMonitor]
+        SM[SystemdMonitor]
+        MGR[GlimpseEventManager]
+    end
+
+    DB[(SQLite Database)]
+
+    subgraph UserSpace["Glimpse Cortex + UI (Python, user)"]
+        direction TB
+        Cortex[GlimpseCortex]
+        UI[GlimpseTimelineUI]
+    end
+
+    %% Flow Connections
+    OS -.->|inotify| PM
+    OS -.->|netlink| HM
+    OS -.->|dbus| SM
+
+    PM -->|Channel| MGR
+    HM -->|Channel| MGR
+    SM -->|Channel| MGR
+
+    %% FIXED LINES BELOW
+    MGR ==>|Write WAL| DB
+    DB -.->|Read Poll/Watch| Cortex
+    Cortex --> UI
+
+    %% Styling
+    classDef rust fill:#e4572e,stroke:#333,stroke-width:2px,color:white;
+    classDef python fill:#3776ab,stroke:#333,stroke-width:2px,color:white;
+    classDef db fill:#f1c40f,stroke:#333,stroke-width:2px;
+
+    class PM,HM,SM,MGR rust;
+    class Cortex,UI python;
+    class DB db;
+```
 
 ## Key Features
 
