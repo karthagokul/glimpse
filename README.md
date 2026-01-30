@@ -1,216 +1,77 @@
-# Glimpse
-### System Flight Recorder & Local Intelligence Co-Pilot for Linux
+# Glimpse 👁️
 
-**Tagline:** *Linux is transparent. Let’s make it readable.*  
-**Status:** Design Phase (v0.1)  
-**License:** Apache-2.0 (recommended)  
-**Platforms:** Linux (Desktop & Server)
+> **Linux is transparent. Let’s make it readable.**
 
----
+[![License](https://img.shields.io/badge/License-GPLv3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0)
+[![Platform](https://img.shields.io/badge/platform-Linux-green)](https://www.linux.org/)
+[![Status](https://img.shields.io/badge/status-Design%20Phase%20v0.1-orange)]()
 
 ## What is Glimpse?
 
-**Glimpse** is a system observability utility that turns fragmented Linux system activity into a **human-readable, causal timeline**.
+Glimpse is a system observability utility that transforms fragmented Linux system activity into a human-readable, causal timeline.
 
-It answers the questions Linux users ask every day:
+It addresses the common frustration of "flying blind" on Linux. When a system breaks, answers are often hidden across disconnected logs like `journalctl`, `dpkg`, and cryptic config files. Glimpse does not create new logs; instead, it acts as a **Narrative Layer** over existing signals, turning raw data into a clear story.
 
-- *What changed on my system yesterday?*
-- *Why did this service suddenly fail after an update?*
-- *Why is my laptop fan spinning or battery draining?*
-- *What caused this error — and what should I do next?*
-
-Glimpse does **not** introduce new logs.  
-It creates a **Narrative Layer** over existing system signals.
-
-Think of it as:
-
-> **Git for your OS history — with explanations.**
-
----
+Think of it as a flight recorder for your operating system that helps you understand exactly what changed, why a service failed, or what triggered a system resource spike.
 
 ## Why Glimpse Exists
 
-Linux systems log everything, yet understanding *what happened* still requires:
-- Correlating `journalctl`, `/var/log/*`, package histories, and config files
-- Interpreting cryptic error messages
-- Guessing causality across unrelated tools
+Linux systems log nearly everything, but understanding that data requires correlating timestamped text files, decoding error messages, and guessing causality. This creates a "Black Box Effect" where updates feel risky and failures appear random.
 
-This creates a **Black Box Effect**:
-- Updates feel risky
-- Failures feel random
-- Recovery feels intimidating
+Glimpse removes that fear by making system history visible and explainable. It is designed to be a System Flight Recorder and Causal Analysis Engine that suggests safe recovery steps without acting as an automatic pilot. It respects your privacy by running entirely locally.
 
-**Glimpse removes that fear by making system history visible, readable, and explainable.**
 
----
-
-## What Glimpse Is (and Is Not)
-
-### Glimpse **is**:
-- A **System Flight Recorder**
-- A **Causal Analysis Engine**
-- A **Recovery Assistant** (suggests, never acts)
-- **Local-first** and **privacy-respecting**
-
-### Glimpse **is not**:
-- A backup or snapshot tool (e.g., Timeshift)
-- A system cleaner or optimizer
-- A remote monitoring agent
-- An AI autopilot that modifies your system
-
-> **Glimpse never changes system state automatically.**  
-> It explains and suggests — you stay in control.
-
----
 
 ## Core Architecture
 
-Glimpse follows a **Listen → Think → Display** model.
+The application follows a simple **Listen → Think → Display** model designed to remain lightweight on your resources.
 
-### 1. Flight Recorder (Collector Daemon)
-A lightweight background service that records meaningful system events.
+The **Flight Recorder** (Backend) is written in Rust. It runs as a background daemon consuming approximately 5MB of RAM. It listens to system events via `dbus`, `inotify`, and `netlink` without polling, ensuring minimal CPU usage.
 
-- **Language:** Rust or Go
-- **Design:** Event-driven (no polling)
-- **Mechanisms:** `dbus`, `inotify`, `netlink`, system hooks
+The **Canvas** (Frontend) is built with Python, GTK4, and Libadwaita. It serves as the viewer and intelligence layer, correlating timestamps to find causality—for example, linking a system crash to a USB device removal milliseconds prior.
 
-**Event Sources**
-- **Packages:** APT, Snap, Flatpak, PIP, Cargo
-- **System:** Boot, shutdown, sleep, wake, reboots
-- **Services:** systemd start / stop / crash
-- **Hardware:** USB, display, network interfaces (udev)
-- **Files:** Config changes in `/etc/` and selected `~/.config/`
+## Key Features
 
----
+**Unified System Timeline**
+View a single chronological feed of meaningful events. Instead of raw log dumps, you see clear actions: a package installation, a configuration file modification, or a service failure. Cause-and-effect becomes obvious when viewed in sequence.
 
-### 2. Cortex (Analysis & Intelligence Layer)
-Correlates events and explains *why* things happened.
+**Causal Analysis**
+Stop guessing why your system is behaving strangely. Glimpse traces the ancestry of processes and events. If your CPU usage spikes, Glimpse can identify that a specific background update process is the root cause, rather than just showing you the symptom.
 
-- **Language:** Python (bridged)
-- **Causality:** Timestamp correlation, process ancestry
-- **Privacy:** 100% local
+**Visual Config Diffs**
+When a package update silently modifies a configuration file in `/etc/`, Glimpse captures a snapshot. You can view a side-by-side comparison of exactly what changed, allowing you to revert unintended edits easily.
 
-**Optional Intelligence (Later MVP)**
-- On-demand **local Small Language Model (SLM)**
-- Runs offline via `llama.cpp` / `Ollama`
-- Quantized, CPU-only, user-initiated
+**Human Error Translator**
+Future versions will include an on-demand, local-only Small Language Model (SLM). This feature will translate cryptic error codes into plain English explanations and offer safe, verified recovery suggestions.
 
----
+## Getting Started
 
-### 3. Canvas (User Interface)
-A calm, modern system history viewer.
+*Note: Glimpse is currently in the Design Phase (v0.1). These instructions are for developers contributing to the project.*
 
-- **Tech:** GTK4 + Libadwaita
-- **Design:** Vertical timeline (Git-style)
-- **Focus:** Signal over noise
+**Prerequisites**
+You will need Rust (latest stable), Python 3.10+, and GTK4 development headers installed on your system.
 
----
+**Build Instructions**
 
-## Feature Set
+1.  Clone the repository:
+    `git clone https://github.com/yourusername/glimpse.git`
 
-### Feature 1: Unified System Timeline
-A single chronological view of meaningful system events.
+2.  Build the Rust backend (Daemon):
+    Navigate to the `backend` directory and run `cargo build --release`. You can test the collector manually by running `cargo run`.
 
-Examples:
-- **[Package]** Installed `nvidia-driver-535`
-- **[Config]** `/etc/default/grub` modified (automatic)
-- **[Service]** `gdm3` failed to start
-- **[Hardware]** USB webcam disconnected
-- **[Network]** Wi-Fi interface lost DHCP lease
-
-**Value:** Cause-and-effect becomes obvious in seconds.
-
----
-
-### Feature 2: Session Grouping (Boot-to-Shutdown)
-Events are grouped into **sessions**, forming readable stories.
-
----
-
-### Feature 3: Human-Readable Narration
-Raw system events are translated into plain language while preserving technical detail.
-
----
-
-### Feature 4: Config Change Tracking (Visual Diffs)
-When key configuration files change, Glimpse records a snapshot.
-
----
-
-### Feature 5: Causal Analysis — “Why is this happening?”
-Explains *intent*, not just symptoms.
-
----
-
-### Feature 6: Human Error Translator (Local-First AI)
-Optional, on-demand explanation of cryptic errors.
-
----
-
-### Feature 7: Recovery Assistant (Suggest, Don’t Act)
-Generates safe next steps without automatic changes.
-
----
-
-### Feature 8: Package Inspector (Post-MVP)
-Pre-install audit for packages.
-
----
-
-## Event Severity & Noise Control
-
-All events are classified into relevance tiers:
-- Critical
-- Informational
-- Background
-
----
-
-## Confidence & Transparency
-
-Every explanation includes a confidence label:
-- Confirmed
-- Likely
-- Uncertain
-
----
-
-## Security Model
-
-- Privileged collector daemon
-- Unprivileged UI
-- Strict IPC boundary
-- No telemetry
-
----
-
-## Data Retention & Control
-
-- Local SQLite storage
-- Configurable retention
-- Category-based pruning
-
----
-
-## Non-Goals
-
-Glimpse will **not**:
-- Act as a backup tool
-- Automatically fix systems
-- Upload data to the cloud
-
----
+3.  Run the Python frontend (UI):
+    Navigate to the `frontend` directory, install dependencies with `pip install -r requirements.txt`, and launch the application using `python3 main.py`.
 
 ## Roadmap
 
-- Phase 1: Skeleton (MVP 0.1)
-- Phase 2: Narration
-- Phase 3: Causality
-- Phase 4: Intelligence
+The project is evolving in four distinct phases. **Phase 1 (Skeleton)** focuses on setting up the Rust daemon, SQLite schema, and a basic GTK4 timeline. **Phase 2 (Narration)** will introduce system service and hardware monitoring. **Phase 3 (Causality)** adds process tree analysis, and **Phase 4 (Intelligence)** will integrate the local LLM for error translation.
 
----
+## Contributing
 
-## Final Philosophy
+We welcome contributions to help make Linux more accessible. Please read our `CONTRIBUTING.md` file for details on our code of conduct and the process for submitting pull requests.
 
-> **Glimpse doesn’t fix your computer.  
-> It gives you the understanding to fix it yourself — without fear.**
+## License
+
+Glimpse is free software distributed under the **GNU GPLv3 License**. See the `LICENSE` file for more information.
+
+> **Final Philosophy:** Glimpse doesn’t fix your computer. It gives you the understanding to fix it yourself—without fear.
