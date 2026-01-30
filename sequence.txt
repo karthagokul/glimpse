@@ -1,0 +1,12 @@
+sequenceDiagram
+    participant OS
+    participant PackageMonitor
+    participant Channel
+    participant GlimpseEventManager
+    participant SQLite
+
+    OS ->> PackageMonitor: dpkg.log modified
+    PackageMonitor ->> Channel: send(GlimpseEvent)
+    Channel ->> GlimpseEventManager: recv(GlimpseEvent)
+    GlimpseEventManager ->> GlimpseEventManager: normalize()
+    GlimpseEventManager ->> SQLite: INSERT event
