@@ -1,0 +1,31 @@
+classDiagram
+
+    class TimelineRepository {
+        +get_all_events()
+        +get_events_by_session()
+        +get_events_by_type()
+    }
+
+    class GlimpseCortex {
+        +correlate(events)
+        +infer_causality()
+        +explain_event(event)
+    }
+
+    class RuleEngine {
+        +match_known_patterns()
+    }
+
+    class LocalLLM {
+        +analyze(log_excerpt)
+    }
+
+    class GlimpseTimelineUI {
+        +render_timeline()
+        +onExplainClicked()
+    }
+
+    TimelineRepository --> GlimpseCortex
+    GlimpseCortex --> RuleEngine
+    GlimpseCortex --> LocalLLM
+    GlimpseCortex --> GlimpseTimelineUI
