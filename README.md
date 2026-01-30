@@ -30,38 +30,41 @@ The **Flight Recorder** (Backend) is written in Rust. It runs as a background da
 The **Canvas** (Frontend) is built with Python, GTK4, and Libadwaita. It serves as the viewer and intelligence layer, correlating timestamps to find causality—for example, linking a system crash to a USB device removal milliseconds prior.
 
 ```mermaid
-flowchart LR
+flowchart TB
     OS[Linux OS Signals]
 
+    %% 1. The Recorder (Top Half)
     subgraph Recorder["Glimpse Recorder (Rust, root)"]
-        direction TB
+        direction LR
         PM[PackageMonitor]
         HM[HardwareMonitor]
         SM[SystemdMonitor]
         MGR[GlimpseEventManager]
+        
+        %% Internal Layout
+        PM --> MGR
+        HM --> MGR
+        SM --> MGR
     end
 
     DB[(SQLite Database)]
 
+    %% 2. The User Space (Bottom Half)
     subgraph UserSpace["Glimpse Cortex + UI (Python, user)"]
         direction TB
         Cortex[GlimpseCortex]
         UI[GlimpseTimelineUI]
+        
+        Cortex --> UI
     end
 
-    %% Flow Connections
+    %% Global Connections
     OS -.->|inotify| PM
     OS -.->|netlink| HM
     OS -.->|dbus| SM
 
-    PM -->|Channel| MGR
-    HM -->|Channel| MGR
-    SM -->|Channel| MGR
-
-    %% FIXED LINES BELOW
     MGR ==>|Write WAL| DB
     DB -.->|Read Poll/Watch| Cortex
-    Cortex --> UI
 
     %% Styling
     classDef rust fill:#e4572e,stroke:#333,stroke-width:2px,color:white;
