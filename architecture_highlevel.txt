@@ -1,0 +1,28 @@
+flowchart LR
+    OS[Linux OS Signals]
+
+    subgraph Recorder["Glimpse Recorder (Rust, root)"]
+        PM[PackageMonitor]
+        HM[HardwareMonitor]
+        SM[SystemdMonitor]
+        MGR[GlimpseEventManager]
+    end
+
+    DB[(SQLite Database)]
+
+    subgraph UserSpace["Glimpse Cortex + UI (Python, user)"]
+        Cortex[GlimpseCortex]
+        UI[GlimpseTimelineUI]
+    end
+
+    OS --> PM
+    OS --> HM
+    OS --> SM
+
+    PM -->|GlimpseEvent| MGR
+    HM -->|GlimpseEvent| MGR
+    SM -->|GlimpseEvent| MGR
+
+    MGR --> DB
+    DB --> Cortex
+    Cortex --> UI
