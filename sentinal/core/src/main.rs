@@ -4,7 +4,17 @@
 
 mod engine;
 
+use tracing_subscriber::EnvFilter;
+
 fn main() {
-    println!("Starting Glimpse core engine...");
-    engine::start();
+    tracing_subscriber::fmt()
+        .with_env_filter(
+            EnvFilter::try_from_default_env()
+                .unwrap_or_else(|_| EnvFilter::new("sentinel=info"))
+        )
+        .init();
+
+    tracing::info!("Sentinel starting...");
+     engine::start();
 }
+
