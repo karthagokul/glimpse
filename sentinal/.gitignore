@@ -1,0 +1,55 @@
+# ===============================
+# Rust / Cargo
+# ===============================
+target/
+**/target/
+
+# Cargo lock (keep for binaries, ignore for libraries if you want)
+# Uncomment ONLY if this is a pure library workspace
+# Cargo.lock
+
+# ===============================
+# Shared Libraries / Plugins
+# ===============================
+*.so
+*.dylib
+*.dll
+
+plugins-bin/
+
+# ===============================
+# Logs & Runtime Artifacts
+# ===============================
+*.log
+logs/
+runtime/
+tmp/
+cache/
+
+# ===============================
+# Editor / IDE
+# ===============================
+.vscode/
+.idea/
+*.swp
+*.swo
+*.bak
+
+# ===============================
+# OS Files
+# ===============================
+.DS_Store
+Thumbs.db
+
+# ===============================
+# Environment / Secrets
+# ===============================
+.env
+.env.*
+
+# ===============================
+# Build Artifacts
+# ===============================
+*.out
+*.exe
+
